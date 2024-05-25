@@ -87,7 +87,7 @@ public class DataSourceAutoConfig implements EnvironmentAware {
         return new DBRouterAspect(dbRouterStrategy, dbRouterConfig);
     }
 
-    @Bean
+    @Bean("dynamicDataSource")
     public DataSource dataSource(IDBRouterStrategy dbRouterStrategy) {
         Map<Object, Object> targetDataSources = new HashMap<>(this.dataSourceMap.size());
         for (Map.Entry<String, Map<String, Object>> entry : this.dataSourceMap.entrySet()) {
@@ -197,7 +197,7 @@ public class DataSourceAutoConfig implements EnvironmentAware {
 
         for (String dbInfo : dbListStr.split(",")) {
             if (dbInfo != null && !dbInfo.isEmpty()) {
-                Map<String, Object> dataSourceProps = PropertyUtil.handle(environment, PREFIX.concat(dbCountStr), Map.class);
+                Map<String, Object> dataSourceProps = PropertyUtil.handle(environment, PREFIX.concat(dbInfo), Map.class);
                 //将全局配置注入到每个数据源的配置中
                 this.injectGlobal(dataSourceProps, globalInfo);
                 dataSourceMap.put(dbInfo, dataSourceProps);
@@ -205,7 +205,7 @@ public class DataSourceAutoConfig implements EnvironmentAware {
         }
 
         //默认数据源
-        this.defaultDataSourceConfig = (Map<String, Object>) PropertyUtil.handle(environment, defaultDb, Map.class);
+        this.defaultDataSourceConfig = (Map<String, Object>) PropertyUtil.handle(environment, PREFIX.concat(defaultDb), Map.class);
         this.injectGlobal(this.defaultDataSourceConfig, globalInfo);
     }
 
@@ -248,7 +248,7 @@ public class DataSourceAutoConfig implements EnvironmentAware {
     @SuppressWarnings("unchecked")
     private Map<String, Object> getGlobalProps(Environment environment) {
         try {
-            return PropertyUtil.handle(environment, GLOBAL_PROPS_KEY, Map.class);
+            return environment.containsProperty(GLOBAL_PROPS_KEY) ? PropertyUtil.handle(environment, GLOBAL_PROPS_KEY, Map.class) : Collections.emptyMap();
         } catch (Exception e) {
             return Collections.emptyMap();
         }

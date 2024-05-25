@@ -9,12 +9,13 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
  */
 @RequiredArgsConstructor
 public class DynamicDataSource extends AbstractRoutingDataSource {
+    private static final String DB_PREFIX = "db";
 
     private final IDBRouterStrategy dbRouterStrategy;
 
     @Override
     protected Object determineCurrentLookupKey() {
         Integer dbKeyIndex = dbRouterStrategy.getDbKeyIndex();
-        return dbKeyIndex == null ? this.dbRouterStrategy.getDefaultDb() : dbKeyIndex;
+        return dbKeyIndex == null ? this.dbRouterStrategy.getDefaultDb() : DB_PREFIX + dbKeyIndex;
     }
 }

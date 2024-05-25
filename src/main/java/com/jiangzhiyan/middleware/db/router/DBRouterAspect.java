@@ -31,12 +31,9 @@ public class DBRouterAspect {
 
     @Around("aopPoint() && @annotation(dbRouter)")
     public Object doRouter(ProceedingJoinPoint pjp, DBRouter dbRouter) throws Throwable {
-        String key = dbRouter.key() == null || dbRouter.key().isEmpty() ? this.dbRouterConfig.getDefaultRouterKey() : dbRouter.key();
-        Class<?> keyClass = dbRouter.keyClass() == DBRouter.NullClass.class ? this.dbRouterConfig.getDefaultRouterKeyClass() : dbRouter.keyClass();
-        //计算路由属性值
-        Object dbKeyAttr = getAttrValue(key, keyClass, getMethod(pjp), pjp.getArgs());
-        dbRouterStrategy.doRouter(dbKeyAttr);
         try {
+            //计算路由属性值
+            dbRouterStrategy.doRouter(getAttrValue(dbRouter, getMethod(pjp), pjp.getArgs()));
             return pjp.proceed();
         } finally {
             dbRouterStrategy.clear();
@@ -49,35 +46,35 @@ public class DBRouterAspect {
         return jp.getTarget().getClass().getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
     }
 
-    public Object getAttrValue(String dbRouterKey, Class<?> dbRouterKeyClass, Method method, Object[] args) {
+    private Object getAttrValue(DBRouter dbRouter, Method method, Object[] args) {
         if (args.length == 0) {
             return null;
         }
+        String dbRouterKey = dbRouter.key() == null || dbRouter.key().isEmpty() ? this.dbRouterConfig.getDefaultRouterKey() : dbRouter.key();
+        Class<?> dbRouterKeyClass = dbRouter.keyClass() == DBRouter.NullClass.class ? this.dbRouterConfig.getDefaultRouterKeyClass() : dbRouter.keyClass();
         if (dbRouterKey == null || dbRouterKey.isEmpty()) {
             throw new RuntimeException("dbRouter key can not be blank.");
         }
         if (dbRouterKeyClass == null || dbRouterKeyClass == DBRouter.NullClass.class) {
             throw new RuntimeException("dbRouter keyClass can not be null.");
         }
-        Object attrValue = null;
+
         Parameter[] parameters = method.getParameters();
+        if (args.length == 1 && dbRouterKeyClass.isAssignableFrom(parameters[0].getType())) {
+            return args[0];
+        }
 
-        for (int i = 0; i < parameters.length; i++) {
-            if (attrValue != null) {
-                return attrValue;
-            }
-            //先在方法参数中找
-            if (dbRouterKey.equals(parameters[i].getName()) && dbRouterKeyClass.isAssignableFrom(parameters[i].getType())) {
-                attrValue = args[i];
-            } else {
-                //再去参数的属性中找
-                try {
-                    attrValue = BeanUtils.getProperty(args[i], dbRouterKey);
-                } catch (Exception ignored) {
-
+        try {
+            for (Object arg : args) {
+                Object attrValue = BeanUtils.getProperty(arg, dbRouterKey);
+                if (attrValue != null) {
+                    return attrValue;
                 }
             }
+        } catch (Exception ignored) {
+
         }
+
         throw new RuntimeException("can not find db router key: [" + dbRouterKey + "] in method's [" + method.getName() + "] parameters.");
     }
 }
