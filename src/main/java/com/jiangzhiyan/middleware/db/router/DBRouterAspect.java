@@ -11,6 +11,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -26,14 +27,37 @@ public class DBRouterAspect {
     private final DBRouterConfig dbRouterConfig;
 
     @Pointcut("@annotation(com.jiangzhiyan.middleware.db.router.annotation.DBRouter)")
-    public void aopPoint() {
+    public void methodWithDBRouter() {
     }
 
-    @Around("aopPoint() && @annotation(dbRouter)")
-    public Object doRouter(ProceedingJoinPoint pjp, DBRouter dbRouter) throws Throwable {
+    @Pointcut("within(@com.jiangzhiyan.middleware.db.router.annotation.DBRouter *)")
+    public void classWithDBRouter() {
+    }
+
+    @Around("methodWithDBRouter() || classWithDBRouter()")
+    public Object doRouter(ProceedingJoinPoint pjp) throws Throwable {
         try {
+            Method method = this.getMethod(pjp);
+            //获取方法上的注解,如果存在
+            DBRouter dbRouterAnnotation = AnnotationUtils.findAnnotation(method, DBRouter.class);
+            //获取类或接口上的注解,如果存在(优先方法上的注解)
+            if (dbRouterAnnotation == null) {
+                Class<?> declaringClass = method.getDeclaringClass();
+                dbRouterAnnotation = declaringClass.getAnnotation(DBRouter.class);
+                if (dbRouterAnnotation == null) {
+                    for (Class<?> declaringInterface : declaringClass.getInterfaces()) {
+                        dbRouterAnnotation = declaringInterface.getAnnotation(DBRouter.class);
+                    }
+                    if (dbRouterAnnotation == null) {
+                        while (declaringClass != null && declaringClass != Object.class && dbRouterAnnotation == null) {
+                            declaringClass = declaringClass.getSuperclass();
+                            dbRouterAnnotation = declaringClass.getAnnotation(DBRouter.class);
+                        }
+                    }
+                }
+            }
             //计算路由属性值
-            dbRouterStrategy.doRouter(getAttrValue(dbRouter, getMethod(pjp), pjp.getArgs()));
+            dbRouterStrategy.doRouter(getAttrValue(dbRouterAnnotation, method, pjp.getArgs()));
             return pjp.proceed();
         } finally {
             dbRouterStrategy.clear();
@@ -47,7 +71,7 @@ public class DBRouterAspect {
     }
 
     private Object getAttrValue(DBRouter dbRouter, Method method, Object[] args) {
-        if (args.length == 0) {
+        if (args.length == 0 || dbRouter == null) {
             return null;
         }
         String dbRouterKey = dbRouter.key() == null || dbRouter.key().isEmpty() ? this.dbRouterConfig.getDefaultRouterKey() : dbRouter.key();
