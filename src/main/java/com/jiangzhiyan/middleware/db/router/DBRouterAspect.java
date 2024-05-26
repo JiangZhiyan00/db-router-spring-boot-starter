@@ -1,7 +1,8 @@
 package com.jiangzhiyan.middleware.db.router;
 
 import com.jiangzhiyan.middleware.db.router.annotation.DBRouter;
-import com.jiangzhiyan.middleware.db.router.strategy.IDBRouterStrategy;
+import com.jiangzhiyan.middleware.db.router.annotation.tag.NullClazz;
+import com.jiangzhiyan.middleware.db.router.strategy.IRouterStrategy;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.beanutils.BeanUtils;
 import org.aspectj.lang.JoinPoint;
@@ -12,6 +13,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -20,11 +22,12 @@ import java.lang.reflect.Parameter;
  * DBRouter注解切面处理类
  */
 @Aspect
+@Order(1)
 @RequiredArgsConstructor
 public class DBRouterAspect {
 
-    private final IDBRouterStrategy dbRouterStrategy;
-    private final DBRouterConfig dbRouterConfig;
+    private final IRouterStrategy routerStrategy;
+    private final RouterConfig routerConfig;
 
     @Pointcut("@annotation(com.jiangzhiyan.middleware.db.router.annotation.DBRouter)")
     public void methodWithDBRouter() {
@@ -57,10 +60,10 @@ public class DBRouterAspect {
                 }
             }
             //计算路由属性值
-            dbRouterStrategy.doRouter(getAttrValue(dbRouterAnnotation, method, pjp.getArgs()));
+            routerStrategy.dbRouter(getAttrValue(dbRouterAnnotation, method, pjp.getArgs()));
             return pjp.proceed();
         } finally {
-            dbRouterStrategy.clear();
+            routerStrategy.clear();
         }
     }
 
@@ -74,12 +77,12 @@ public class DBRouterAspect {
         if (args.length == 0 || dbRouter == null) {
             return null;
         }
-        String dbRouterKey = dbRouter.key() == null || dbRouter.key().isEmpty() ? this.dbRouterConfig.getDefaultRouterKey() : dbRouter.key();
-        Class<?> dbRouterKeyClass = dbRouter.keyClass() == DBRouter.NullClass.class ? this.dbRouterConfig.getDefaultRouterKeyClass() : dbRouter.keyClass();
+        String dbRouterKey = dbRouter.key() == null || dbRouter.key().isEmpty() ? this.routerConfig.getDefaultDBRouterKey() : dbRouter.key();
+        Class<?> dbRouterKeyClass = dbRouter.keyClass() == NullClazz.class ? this.routerConfig.getDefaultDBRouterKeyClass() : dbRouter.keyClass();
         if (dbRouterKey == null || dbRouterKey.isEmpty()) {
             throw new RuntimeException("dbRouter key can not be blank.");
         }
-        if (dbRouterKeyClass == null || dbRouterKeyClass == DBRouter.NullClass.class) {
+        if (dbRouterKeyClass == null || dbRouterKeyClass == NullClazz.class) {
             throw new RuntimeException("dbRouter keyClass can not be null.");
         }
 

@@ -1,11 +1,11 @@
 package com.jiangzhiyan.middleware.db.router.annotation;
 
-import lombok.experimental.UtilityClass;
+import com.jiangzhiyan.middleware.db.router.annotation.tag.NullClazz;
 
 import java.lang.annotation.*;
 
 /**
- * 动态数据库路由注解
+ * 分库注解
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -13,10 +13,5 @@ import java.lang.annotation.*;
 public @interface DBRouter {
     String key() default "";
 
-    Class<?> keyClass() default NullClass.class;
-
-    @UtilityClass
-    class NullClass {
-        // 这个类用来表示keyClass的默认值，即null
-    }
+    Class<?> keyClass() default NullClazz.class;
 }

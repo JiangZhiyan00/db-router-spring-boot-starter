@@ -1,11 +1,12 @@
 package com.jiangzhiyan.middleware.db.router.config;
 
 import com.jiangzhiyan.middleware.db.router.DBRouterAspect;
-import com.jiangzhiyan.middleware.db.router.DBRouterConfig;
+import com.jiangzhiyan.middleware.db.router.RouterConfig;
+import com.jiangzhiyan.middleware.db.router.TableRouterAspect;
 import com.jiangzhiyan.middleware.db.router.dynamic.DynamicDataSource;
 import com.jiangzhiyan.middleware.db.router.dynamic.DynamicMybatisPlugin;
-import com.jiangzhiyan.middleware.db.router.strategy.IDBRouterStrategy;
-import com.jiangzhiyan.middleware.db.router.strategy.impl.DBRouterHashCodeStrategy;
+import com.jiangzhiyan.middleware.db.router.strategy.IRouterStrategy;
+import com.jiangzhiyan.middleware.db.router.strategy.impl.RouterHashCodeStrategy;
 import com.jiangzhiyan.middleware.db.router.util.PropertyUtil;
 import com.jiangzhiyan.middleware.db.router.util.StringUtil;
 import com.zaxxer.hikari.HikariDataSource;
@@ -35,8 +36,10 @@ public class DataSourceAutoConfig implements EnvironmentAware {
     private static final String DB_COUNT_KEY = PREFIX.concat("dbCount");
     private static final String TABLE_COUNT_KEY = PREFIX.concat("tableCount");
     private static final String ROUTER_DB_LIST_KEY = PREFIX.concat("routerDbList");
-    private static final String DEFAULT_ROUTER_KEY = PREFIX.concat("defaultRouterKey");
-    private static final String DEFAULT_ROUTER_KEY_CLASS_KEY = PREFIX.concat("defaultRouterKeyClass");
+    private static final String DEFAULT_DB_ROUTER_KEY = PREFIX.concat("defaultDbRouterKey");
+    private static final String DEFAULT_TABLE_ROUTER_KEY = PREFIX.concat("defaultTableRouterKey");
+    private static final String DEFAULT_DB_ROUTER_KEY_CLASS_KEY = PREFIX.concat("defaultDbRouterKeyClass");
+    private static final String DEFAULT_TABLE_ROUTER_KEY_CLASS_KEY = PREFIX.concat("defaultTableRouterKeyClass");
     private static final String DEFAULT_DB_KEY = PREFIX.concat("defaultDb");
     private static final String GLOBAL_PROPS_KEY = PREFIX.concat("global");
     private static final String TAG_POOL = "pool";
@@ -55,13 +58,21 @@ public class DataSourceAutoConfig implements EnvironmentAware {
      */
     private String defaultDb;
     /**
-     * 默认分库分表字段名
+     * 默认分库字段名
      */
-    private String defaultRouterKey;
+    private String defaultDBRouterKey;
     /**
-     * 默认分库分表字段类型
+     * 默认分库字段类型
      */
-    private Class<?> defaultRouterKeyClass;
+    private Class<?> defaultDBRouterKeyClass;
+    /**
+     * 默认分表字段名
+     */
+    private String defaultTableRouterKey;
+    /**
+     * 默认分表字段类型
+     */
+    private Class<?> defaultTableRouterKeyClass;
     /**
      * 分库数
      */
@@ -72,23 +83,29 @@ public class DataSourceAutoConfig implements EnvironmentAware {
     private int tableCount;
 
     @Bean
-    public DBRouterConfig dbRouterConfig() {
-        return new DBRouterConfig(dbCount, tableCount, defaultDb, defaultRouterKey, defaultRouterKeyClass);
+    public RouterConfig routerConfig() {
+        return new RouterConfig(dbCount, tableCount, defaultDb, defaultDBRouterKey, defaultDBRouterKeyClass, defaultTableRouterKey, defaultTableRouterKeyClass);
     }
 
     @Bean
-    public IDBRouterStrategy dbRouterStrategy(DBRouterConfig dbRouterConfig) {
-        return new DBRouterHashCodeStrategy(dbRouterConfig);
+    public IRouterStrategy dbRouterStrategy(RouterConfig routerConfig) {
+        return new RouterHashCodeStrategy(routerConfig);
     }
 
     @Bean("db-router-aspect")
     @ConditionalOnMissingBean
-    public DBRouterAspect dbRouterAspect(IDBRouterStrategy dbRouterStrategy, DBRouterConfig dbRouterConfig) {
-        return new DBRouterAspect(dbRouterStrategy, dbRouterConfig);
+    public DBRouterAspect dbRouterAspect(IRouterStrategy dbRouterStrategy, RouterConfig routerConfig) {
+        return new DBRouterAspect(dbRouterStrategy, routerConfig);
+    }
+
+    @Bean("table-router-aspect")
+    @ConditionalOnMissingBean
+    public TableRouterAspect tableRouterAspect(IRouterStrategy dbRouterStrategy, RouterConfig routerConfig) {
+        return new TableRouterAspect(dbRouterStrategy, routerConfig);
     }
 
     @Bean("dynamicDataSource")
-    public DataSource dataSource(IDBRouterStrategy dbRouterStrategy) {
+    public DataSource dataSource(IRouterStrategy dbRouterStrategy) {
         Map<Object, Object> targetDataSources = new HashMap<>(this.dataSourceMap.size());
         for (Map.Entry<String, Map<String, Object>> entry : this.dataSourceMap.entrySet()) {
             DataSource dataSource = this.createDataSource(entry.getValue());
@@ -101,7 +118,7 @@ public class DataSourceAutoConfig implements EnvironmentAware {
     }
 
     @Bean
-    public Interceptor plugin(IDBRouterStrategy dbRouterStrategy) {
+    public Interceptor plugin(IRouterStrategy dbRouterStrategy) {
         return new DynamicMybatisPlugin(dbRouterStrategy);
     }
 
@@ -124,8 +141,10 @@ public class DataSourceAutoConfig implements EnvironmentAware {
      * tableCount: 4
      * defaultDb: db0
      * routerDbList: db1,db2
-     * defaultRouterKey: userId
-     * defaultRouterKeyClass: java.lang.String
+     * defaultDbRouterKey: userId
+     * defaultDbRouterKeyClass: java.lang.String
+     * defaultTableRouterKey: userId
+     * defaultTableRouterKeyClass: java.lang.String
      * db0:
      * driver-class-name: com.mysql.cj.jdbc.Driver
      * url: jdbc:mysql://127.0.0.1:3306/big_market?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
@@ -180,17 +199,34 @@ public class DataSourceAutoConfig implements EnvironmentAware {
         String dbCountStr = environment.getRequiredProperty(DB_COUNT_KEY);
         String tableCountStr = environment.getRequiredProperty(TABLE_COUNT_KEY);
         String dbListStr = environment.getRequiredProperty(ROUTER_DB_LIST_KEY);
-        String defaultRouterKeyClassStr = environment.getProperty(DEFAULT_ROUTER_KEY_CLASS_KEY);
+        String defaultDbRouterKeyClassStr = environment.getProperty(DEFAULT_DB_ROUTER_KEY_CLASS_KEY);
+        String defaultTableRouterKeyClassStr = environment.getProperty(DEFAULT_TABLE_ROUTER_KEY_CLASS_KEY);
 
         try {
-            this.defaultRouterKeyClass = Class.forName(defaultRouterKeyClassStr);
+            this.defaultDBRouterKeyClass = Class.forName(defaultDbRouterKeyClassStr);
         } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("can not find default router key class by class name", e);
+            throw new IllegalArgumentException("can not find default db router key class by class name", e);
         }
+        try {
+            this.defaultTableRouterKeyClass = Class.forName(defaultTableRouterKeyClassStr);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("can not find default table router key class by class name", e);
+        }
+
         this.defaultDb = environment.getRequiredProperty(DEFAULT_DB_KEY);
-        this.defaultRouterKey = environment.getProperty(DEFAULT_ROUTER_KEY);
-        this.dbCount = parseIntOrThrow(dbCountStr, DB_COUNT_KEY);
-        this.tableCount = parseIntOrThrow(tableCountStr, TABLE_COUNT_KEY);
+        this.defaultDBRouterKey = environment.getProperty(DEFAULT_DB_ROUTER_KEY);
+        this.defaultTableRouterKey = environment.getProperty(DEFAULT_TABLE_ROUTER_KEY);
+
+        int dbCount = parseIntOrThrow(dbCountStr, DB_COUNT_KEY);
+        int tableCount = parseIntOrThrow(tableCountStr, TABLE_COUNT_KEY);
+        if (dbCount <= 0) {
+            throw new IllegalArgumentException("dbCount must be > 0,but now is " + dbCount);
+        }
+        if (tableCount <= 0) {
+            throw new IllegalArgumentException("tableCount must be > 0,but now is " + tableCount);
+        }
+        this.dbCount = dbCount;
+        this.tableCount = tableCount;
 
         //全局配置
         Map<String, Object> globalInfo = this.getGlobalProps(environment);

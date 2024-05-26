@@ -3,28 +3,35 @@ package com.jiangzhiyan.middleware.db.router.strategy;
 /**
  * 分库分表策略接口
  */
-public interface IDBRouterStrategy {
+public interface IRouterStrategy {
 
     /**
-     * 执行分库分表路由
+     * 执行分库路由
      *
-     * @param dbKeyValue 分库分表字段值
+     * @param dbKeyValue 分库字段值
      */
-    void doRouter(Object dbKeyValue);
+    void dbRouter(Object dbKeyValue);
+
+    /**
+     * 执行分表路由
+     *
+     * @param dbKeyValue 分表字段值
+     */
+    void tableRouter(Object dbKeyValue);
 
     /**
      * 获取分库索引
      *
      * @return 分库索引
      */
-    Integer getDbKeyIndex();
+    Integer getDbIndex();
 
     /**
      * 获取分表索引
      *
      * @return 分表索引
      */
-    Integer getTableKeyIndex();
+    Integer getTableIndex();
 
     /**
      * 获取默认库名

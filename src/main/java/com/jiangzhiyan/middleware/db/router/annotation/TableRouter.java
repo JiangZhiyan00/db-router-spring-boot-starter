@@ -1,5 +1,7 @@
 package com.jiangzhiyan.middleware.db.router.annotation;
 
+import com.jiangzhiyan.middleware.db.router.annotation.tag.NullClazz;
+
 import java.lang.annotation.*;
 
 /**
@@ -8,6 +10,8 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
-public @interface DBRouterStrategy {
-    boolean splitTable() default false;
+public @interface TableRouter {
+    String key() default "";
+
+    Class<?> keyClass() default NullClazz.class;
 }
