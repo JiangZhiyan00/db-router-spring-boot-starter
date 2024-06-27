@@ -40,7 +40,7 @@ public class DBRouterAspect {
     @Around("methodWithDBRouter() || classWithDBRouter()")
     public Object doRouter(ProceedingJoinPoint pjp) throws Throwable {
         //如果既有注解,又手动分库了的话,使用手动分库的结果
-        if (routerStrategy.getDbIndex() > 0) {
+        if (routerStrategy.getDbIndex() != null && routerStrategy.getDbIndex() > 0) {
             return pjp.proceed();
         }
         try {

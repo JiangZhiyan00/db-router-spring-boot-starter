@@ -35,7 +35,7 @@ public class TableRouterAspect {
     @Around("methodWithTableRouter() || classWithTableRouter()")
     public Object doRouter(ProceedingJoinPoint pjp) throws Throwable {
         //如果既有注解,又手动分表了的话,使用手动分表的结果
-        if (routerStrategy.getTableIndex() > 0) {
+        if (routerStrategy.getTableIndex() != null && routerStrategy.getTableIndex() > 0) {
             return pjp.proceed();
         }
         try {
