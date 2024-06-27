@@ -6,18 +6,34 @@ package com.jiangzhiyan.middleware.db.router.strategy;
 public interface IRouterStrategy {
 
     /**
-     * 执行分库路由
+     * 执行分库路由,使用默认分库数量
      *
      * @param dbKeyValue 分库字段值
      */
     void dbRouter(Object dbKeyValue);
 
     /**
-     * 执行分表路由
+     * 执行分库路由,使用指定的分库数量
      *
-     * @param dbKeyValue 分表字段值
+     * @param dbKeyValue 分库字段值
+     * @param dbCount    分库数量
      */
-    void tableRouter(Object dbKeyValue);
+    void dbRouter(Object dbKeyValue, int dbCount);
+
+    /**
+     * 执行分表路由,使用默认的分表数量
+     *
+     * @param tableKeyValue 分表字段值
+     */
+    void tableRouter(Object tableKeyValue);
+
+    /**
+     * 执行分表路由,使用指定的分表数量
+     *
+     * @param tableKeyValue 分表字段值
+     * @param tableCount    分表数量
+     */
+    void tableRouter(Object tableKeyValue, int tableCount);
 
     /**
      * 获取分库索引

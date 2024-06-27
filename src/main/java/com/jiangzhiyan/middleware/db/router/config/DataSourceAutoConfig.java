@@ -6,7 +6,7 @@ import com.jiangzhiyan.middleware.db.router.TableRouterAspect;
 import com.jiangzhiyan.middleware.db.router.dynamic.DynamicDataSource;
 import com.jiangzhiyan.middleware.db.router.dynamic.DynamicMybatisPlugin;
 import com.jiangzhiyan.middleware.db.router.strategy.IRouterStrategy;
-import com.jiangzhiyan.middleware.db.router.strategy.impl.RouterHashCodeStrategy;
+import com.jiangzhiyan.middleware.db.router.strategy.impl.HashCodeRouterStrategy;
 import com.jiangzhiyan.middleware.db.router.util.PropertyUtil;
 import com.jiangzhiyan.middleware.db.router.util.StringUtil;
 import com.zaxxer.hikari.HikariDataSource;
@@ -89,7 +89,7 @@ public class DataSourceAutoConfig implements EnvironmentAware {
 
     @Bean
     public IRouterStrategy dbRouterStrategy(RouterConfig routerConfig) {
-        return new RouterHashCodeStrategy(routerConfig);
+        return new HashCodeRouterStrategy(routerConfig);
     }
 
     @Bean("db-router-aspect")

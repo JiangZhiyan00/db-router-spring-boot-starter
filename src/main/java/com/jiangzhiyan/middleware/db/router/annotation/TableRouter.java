@@ -13,5 +13,7 @@ import java.lang.annotation.*;
 public @interface TableRouter {
     String key() default "";
 
+    int tableCount() default -1;
+
     Class<?> keyClass() default NullClazz.class;
 }

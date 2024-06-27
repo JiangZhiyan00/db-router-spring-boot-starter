@@ -54,8 +54,12 @@ public class TableRouterAspect {
                     }
                 }
             }
-            //计算路由属性值
-            routerStrategy.tableRouter(getAttrValue(tableRouterAnnotation, method, pjp.getArgs()));
+            if (tableRouterAnnotation != null) {
+                int tableCount = tableRouterAnnotation.tableCount() < 1 ? this.routerConfig.getTableCount() : tableRouterAnnotation.tableCount();
+                //计算路由属性值
+                routerStrategy.tableRouter(getAttrValue(tableRouterAnnotation, method, pjp.getArgs()), tableCount);
+            }
+
             return pjp.proceed();
         } finally {
             routerStrategy.clear();

@@ -59,8 +59,12 @@ public class DBRouterAspect {
                     }
                 }
             }
-            //计算路由属性值
-            routerStrategy.dbRouter(getAttrValue(dbRouterAnnotation, method, pjp.getArgs()));
+
+            if (dbRouterAnnotation != null) {
+                int dbCount = dbRouterAnnotation.dbCount() < 1 ? this.routerConfig.getDbCount() : dbRouterAnnotation.dbCount();
+                //计算路由属性值
+                routerStrategy.dbRouter(getAttrValue(dbRouterAnnotation, method, pjp.getArgs()), dbCount);
+            }
             return pjp.proceed();
         } finally {
             routerStrategy.clear();
@@ -74,7 +78,7 @@ public class DBRouterAspect {
     }
 
     private Object getAttrValue(DBRouter dbRouter, Method method, Object[] args) {
-        if (args.length == 0 || dbRouter == null) {
+        if (args.length == 0) {
             return null;
         }
         String dbRouterKey = dbRouter.key() == null || dbRouter.key().isEmpty() ? this.routerConfig.getDefaultDBRouterKey() : dbRouter.key();

@@ -13,5 +13,7 @@ import java.lang.annotation.*;
 public @interface DBRouter {
     String key() default "";
 
+    int dbCount() default -1;
+
     Class<?> keyClass() default NullClazz.class;
 }

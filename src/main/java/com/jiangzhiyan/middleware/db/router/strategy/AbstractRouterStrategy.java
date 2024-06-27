@@ -7,7 +7,7 @@ import lombok.experimental.UtilityClass;
 @RequiredArgsConstructor
 public abstract class AbstractRouterStrategy implements IRouterStrategy {
 
-    protected final RouterConfig routerConfig;
+    private final RouterConfig routerConfig;
 
     @Override
     public void dbRouter(Object dbKeyValue) {
@@ -16,9 +16,21 @@ public abstract class AbstractRouterStrategy implements IRouterStrategy {
     }
 
     @Override
+    public void dbRouter(Object dbKeyValue, int dbCount) {
+        //获取分库路由结果,并存入上下文
+        DBContextHolder.setDbIndex(this.doDbRouter(dbKeyValue, dbCount));
+    }
+
+    @Override
     public void tableRouter(Object tableKeyValue) {
         //获取分表路由结果,并存入上下文
         DBContextHolder.setTableIndex(this.doTableRouter(tableKeyValue));
+    }
+
+    @Override
+    public void tableRouter(Object tableKeyValue, int tableCount) {
+        //获取分表路由结果,并存入上下文
+        DBContextHolder.setTableIndex(this.doTableRouter(tableKeyValue, tableCount));
     }
 
     @Override
@@ -49,17 +61,39 @@ public abstract class AbstractRouterStrategy implements IRouterStrategy {
      * 获取分库路由结果
      *
      * @param dbKeyValue 分库字段值
+     * @param dbCount    分库数量
      * @return 分库库表索引
      */
-    protected abstract Integer doDbRouter(Object dbKeyValue);
+    protected abstract Integer doDbRouter(Object dbKeyValue, int dbCount);
+
+    /**
+     * 获取分库路由结果
+     *
+     * @param dbKeyValue 分库字段值
+     * @return 分库库表索引
+     */
+    private Integer doDbRouter(Object dbKeyValue) {
+        return this.doDbRouter(dbKeyValue, this.routerConfig.getDbCount());
+    }
 
     /**
      * 获取分表路由结果
      *
      * @param tableKeyValue 分表字段值
-     * @return 分表库表索引
+     * @param tableCount    分表数量
+     * @return 分表表索引
      */
-    protected abstract Integer doTableRouter(Object tableKeyValue);
+    protected abstract Integer doTableRouter(Object tableKeyValue, int tableCount);
+
+    /**
+     * 获取分表路由结果
+     *
+     * @param tableKeyValue 分表字段值
+     * @return 分表表索引
+     */
+    private Integer doTableRouter(Object tableKeyValue) {
+        return this.doTableRouter(tableKeyValue, this.routerConfig.getTableCount());
+    }
 
     /**
      * 数据库上下文
