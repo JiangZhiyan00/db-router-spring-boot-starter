@@ -36,20 +36,16 @@ public class HashCodeRouterStrategy extends AbstractRouterStrategy {
         if (tableKeyValue == null) {
             return null;
         }
-
         //扰动函数值
         int hash = hash(tableKeyValue);
-
-        int idx;
+        //表索引
+        int tableIndex;
         if (isPowerOfTwo(tableCount)) {
-            idx = hash & (tableCount - 1);
+            tableIndex = (hash & (tableCount - 1)) + 1;
         } else {
-            idx = hash % (tableCount);
+            tableIndex = (hash % (tableCount)) + 1;
             log.warn("The tableCount [{}] is not 2 to the nth power,and data hashing may be uneven.", tableCount);
         }
-
-        //表索引
-        int tableIndex = (tableCount / idx) + 1;
 
         log.info("table-router result: {}", tableIndex);
         return tableIndex;
