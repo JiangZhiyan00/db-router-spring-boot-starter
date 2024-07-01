@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 
 @RequiredArgsConstructor
-public abstract class AbstractRouterStrategy implements IManualRouterStrategy {
+public abstract class AbstractRouterStrategy implements IRouterStrategy {
 
     private final RouterConfig routerConfig;
 

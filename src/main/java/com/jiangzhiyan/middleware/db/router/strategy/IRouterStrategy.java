@@ -3,7 +3,7 @@ package com.jiangzhiyan.middleware.db.router.strategy;
 /**
  * 分库分表策略接口
  */
-public interface IRouterStrategy {
+public interface IRouterStrategy extends IManualRouterStrategy {
 
     /**
      * 执行分库路由,使用默认分库数量
@@ -57,20 +57,6 @@ public interface IRouterStrategy {
     String getDefaultDb();
 
     /**
-     * 获取默认分库数量
-     *
-     * @return 默认分库数量
-     */
-    int getDefaultDbCount();
-
-    /**
-     * 获取默认分表数量
-     *
-     * @return 默认分表数量
-     */
-    int getDefaultTableCount();
-
-    /**
      * 获取默认分库字段
      *
      * @return 默认分库字段
@@ -97,9 +83,4 @@ public interface IRouterStrategy {
      * @return 默认分表字段类型
      */
     Class<?> getDefaultTableRouterKeyClass();
-
-    /**
-     * 清除上下文
-     */
-    void clear();
 }
