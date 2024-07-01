@@ -27,7 +27,6 @@ import java.lang.reflect.Parameter;
 public class DBRouterAspect {
 
     private final IRouterStrategy routerStrategy;
-    private final RouterConfig routerConfig;
 
     @Pointcut("@annotation(com.jiangzhiyan.middleware.db.router.annotation.DBRouter)")
     public void methodWithDBRouter() {
@@ -65,7 +64,7 @@ public class DBRouterAspect {
             }
 
             if (dbRouterAnnotation != null) {
-                int dbCount = dbRouterAnnotation.dbCount() < 1 ? this.routerConfig.getDbCount() : dbRouterAnnotation.dbCount();
+                int dbCount = dbRouterAnnotation.dbCount() < 1 ? routerStrategy.getDefaultDbCount() : dbRouterAnnotation.dbCount();
                 //计算路由属性值
                 routerStrategy.dbRouter(getAttrValue(dbRouterAnnotation, method, pjp.getArgs()), dbCount);
             }
@@ -85,8 +84,8 @@ public class DBRouterAspect {
         if (args.length == 0) {
             return null;
         }
-        String dbRouterKey = dbRouter.key() == null || dbRouter.key().isEmpty() ? this.routerConfig.getDefaultDBRouterKey() : dbRouter.key();
-        Class<?> dbRouterKeyClass = dbRouter.keyClass() == NullClazz.class ? this.routerConfig.getDefaultDBRouterKeyClass() : dbRouter.keyClass();
+        String dbRouterKey = dbRouter.key() == null || dbRouter.key().isEmpty() ? routerStrategy.getDefaultDbRouterKey() : dbRouter.key();
+        Class<?> dbRouterKeyClass = dbRouter.keyClass() == NullClazz.class ? routerStrategy.getDefaultDbRouterKeyClass() : dbRouter.keyClass();
         if (dbRouterKey == null || dbRouterKey.isEmpty()) {
             throw new RuntimeException("dbRouter key can not be blank.");
         }

@@ -88,20 +88,20 @@ public class DataSourceAutoConfig implements EnvironmentAware {
     }
 
     @Bean
-    public IRouterStrategy dbRouterStrategy(RouterConfig routerConfig) {
+    public IRouterStrategy routerStrategy(RouterConfig routerConfig) {
         return new HashCodeRouterStrategy(routerConfig);
     }
 
     @Bean("db-router-aspect")
     @ConditionalOnMissingBean
-    public DBRouterAspect dbRouterAspect(IRouterStrategy dbRouterStrategy, RouterConfig routerConfig) {
-        return new DBRouterAspect(dbRouterStrategy, routerConfig);
+    public DBRouterAspect dbRouterAspect(IRouterStrategy dbRouterStrategy) {
+        return new DBRouterAspect(dbRouterStrategy);
     }
 
     @Bean("table-router-aspect")
     @ConditionalOnMissingBean
-    public TableRouterAspect tableRouterAspect(IRouterStrategy dbRouterStrategy, RouterConfig routerConfig) {
-        return new TableRouterAspect(dbRouterStrategy, routerConfig);
+    public TableRouterAspect tableRouterAspect(IRouterStrategy dbRouterStrategy) {
+        return new TableRouterAspect(dbRouterStrategy);
     }
 
     @Bean("dynamicDataSource")

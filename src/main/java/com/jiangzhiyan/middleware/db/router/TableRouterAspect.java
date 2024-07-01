@@ -22,7 +22,6 @@ import java.lang.reflect.Method;
 @RequiredArgsConstructor
 public class TableRouterAspect {
     private final IRouterStrategy routerStrategy;
-    private final RouterConfig routerConfig;
 
     @Pointcut("@annotation(com.jiangzhiyan.middleware.db.router.annotation.TableRouter)")
     public void methodWithTableRouter() {
@@ -59,7 +58,7 @@ public class TableRouterAspect {
                 }
             }
             if (tableRouterAnnotation != null) {
-                int tableCount = tableRouterAnnotation.tableCount() < 1 ? this.routerConfig.getTableCount() : tableRouterAnnotation.tableCount();
+                int tableCount = tableRouterAnnotation.tableCount() < 1 ? routerStrategy.getDefaultTableCount() : tableRouterAnnotation.tableCount();
                 //计算路由属性值
                 routerStrategy.tableRouter(getAttrValue(tableRouterAnnotation, method, pjp.getArgs()), tableCount);
             }
@@ -80,8 +79,8 @@ public class TableRouterAspect {
         if (args.length == 0 || tableRouter == null) {
             return null;
         }
-        String tableRouterKey = tableRouter.key() == null || tableRouter.key().isEmpty() ? this.routerConfig.getDefaultTableRouterKey() : tableRouter.key();
-        Class<?> tableRouterKeyClass = tableRouter.keyClass() == NullClazz.class ? this.routerConfig.getDefaultTableRouterKeyClass() : tableRouter.keyClass();
+        String tableRouterKey = tableRouter.key() == null || tableRouter.key().isEmpty() ? routerStrategy.getDefaultTableRouterKey() : tableRouter.key();
+        Class<?> tableRouterKeyClass = tableRouter.keyClass() == NullClazz.class ? routerStrategy.getDefaultTableRouterKeyClass() : tableRouter.keyClass();
         if (tableRouterKey == null || tableRouterKey.isEmpty()) {
             throw new RuntimeException("tableRouter key can not be blank.");
         }

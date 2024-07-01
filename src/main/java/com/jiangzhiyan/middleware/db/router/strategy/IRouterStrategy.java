@@ -57,6 +57,48 @@ public interface IRouterStrategy {
     String getDefaultDb();
 
     /**
+     * 获取默认分库数量
+     *
+     * @return 默认分库数量
+     */
+    int getDefaultDbCount();
+
+    /**
+     * 获取默认分表数量
+     *
+     * @return 默认分表数量
+     */
+    int getDefaultTableCount();
+
+    /**
+     * 获取默认分库字段
+     *
+     * @return 默认分库字段
+     */
+    String getDefaultDbRouterKey();
+
+    /**
+     * 获取默认分库字段类型
+     *
+     * @return 默认分库字段类型
+     */
+    Class<?> getDefaultDbRouterKeyClass();
+
+    /**
+     * 获取默认分表字段
+     *
+     * @return 默认分表字段
+     */
+    String getDefaultTableRouterKey();
+
+    /**
+     * 获取默认分表字段类型
+     *
+     * @return 默认分表字段类型
+     */
+    Class<?> getDefaultTableRouterKeyClass();
+
+    /**
      * 清除上下文
      */
     void clear();

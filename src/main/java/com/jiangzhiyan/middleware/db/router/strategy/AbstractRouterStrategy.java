@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 
 @RequiredArgsConstructor
-public abstract class AbstractRouterStrategy implements IRouterStrategy {
+public abstract class AbstractRouterStrategy implements IManualRouterStrategy {
 
     private final RouterConfig routerConfig;
 
@@ -45,7 +45,37 @@ public abstract class AbstractRouterStrategy implements IRouterStrategy {
 
     @Override
     public String getDefaultDb() {
-        return this.routerConfig.getDefaultDb();
+        return routerConfig.getDefaultDb();
+    }
+
+    @Override
+    public int getDefaultDbCount() {
+        return routerConfig.getDbCount();
+    }
+
+    @Override
+    public int getDefaultTableCount() {
+        return routerConfig.getTableCount();
+    }
+
+    @Override
+    public String getDefaultDbRouterKey() {
+        return routerConfig.getDefaultDBRouterKey();
+    }
+
+    @Override
+    public Class<?> getDefaultDbRouterKeyClass() {
+        return routerConfig.getDefaultDBRouterKeyClass();
+    }
+
+    @Override
+    public String getDefaultTableRouterKey() {
+        return routerConfig.getDefaultTableRouterKey();
+    }
+
+    @Override
+    public Class<?> getDefaultTableRouterKeyClass() {
+        return routerConfig.getDefaultTableRouterKeyClass();
     }
 
     /**
@@ -55,6 +85,16 @@ public abstract class AbstractRouterStrategy implements IRouterStrategy {
     public void clear() {
         DBContextHolder.clearDBIndex();
         DBContextHolder.clearTableIndex();
+    }
+
+    @Override
+    public void setDbRouter(int dbIndex) {
+        DBContextHolder.setDbIndex(dbIndex);
+    }
+
+    @Override
+    public void setTableRouter(int tableIndex) {
+        DBContextHolder.setTableIndex(tableIndex);
     }
 
     /**
@@ -73,7 +113,7 @@ public abstract class AbstractRouterStrategy implements IRouterStrategy {
      * @return 分库库表索引
      */
     private Integer doDbRouter(Object dbKeyValue) {
-        return this.doDbRouter(dbKeyValue, this.routerConfig.getDbCount());
+        return this.doDbRouter(dbKeyValue, routerConfig.getDbCount());
     }
 
     /**
@@ -92,7 +132,7 @@ public abstract class AbstractRouterStrategy implements IRouterStrategy {
      * @return 分表表索引
      */
     private Integer doTableRouter(Object tableKeyValue) {
-        return this.doTableRouter(tableKeyValue, this.routerConfig.getTableCount());
+        return this.doTableRouter(tableKeyValue, routerConfig.getTableCount());
     }
 
     /**
