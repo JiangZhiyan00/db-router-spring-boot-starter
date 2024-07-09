@@ -27,7 +27,7 @@ public class HashCodeRouterStrategy extends AbstractRouterStrategy {
             dbIndex = (hash % dbCount) + 1;
         }
 
-        log.info("db-router result: {}", dbIndex);
+        log.debug("db-router result: {}", dbIndex);
         return dbIndex;
     }
 
@@ -47,7 +47,7 @@ public class HashCodeRouterStrategy extends AbstractRouterStrategy {
             log.warn("The tableCount [{}] is not 2 to the nth power,and data hashing may be uneven.", tableCount);
         }
 
-        log.info("table-router result: {}", tableIndex);
+        log.debug("table-router result: {}", tableIndex);
         return tableIndex;
     }
 
