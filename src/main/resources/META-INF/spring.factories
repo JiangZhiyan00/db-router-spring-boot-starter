@@ -1,1 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.jiangzhiyan.middleware.db.router.config.DataSourceAutoConfig
+org.springframework.context.ApplicationListener=com.jiangzhiyan.middleware.db.router.config.BannerPrinter

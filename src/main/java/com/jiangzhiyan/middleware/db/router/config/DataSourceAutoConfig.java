@@ -132,6 +132,11 @@ public class DataSourceAutoConfig implements EnvironmentAware {
         return transactionTemplate;
     }
 
+    @Bean("lite-db-router-banner-printer")
+    public BannerPrinter bannerPrinter() {
+        return new BannerPrinter();
+    }
+
     /**
      * 配置示例
      * db-router:
