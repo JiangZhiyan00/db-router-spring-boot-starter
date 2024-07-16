@@ -81,7 +81,7 @@ public class DBRouterAspect {
     }
 
     private Object getAttrValue(DBRouter dbRouter, Method method, Object[] args) {
-        if (args.length == 0) {
+        if (args.length == 0 || dbRouter == null) {
             return null;
         }
         String dbRouterKey = dbRouter.key() == null || dbRouter.key().isEmpty() ? routerStrategy.getDefaultDbRouterKey() : dbRouter.key();

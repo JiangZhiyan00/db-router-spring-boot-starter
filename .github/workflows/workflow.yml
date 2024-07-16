@@ -1,0 +1,111 @@
+name: Run AI Code Review on Protected Branch Push or Pull Request
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - mybatis-plus
+  pull_request:
+    branches:
+      - main
+      - master
+      - mybatis-plus
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出仓库
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # 检出最后两个提交，以便可以比较 HEAD~1 和 HEAD
+
+      # 设置jdk
+      - name: Set Up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 下载AI代码评审jar包
+      - name: Download ai-code-review jar to libs directory
+        run: |
+          mkdir -p ./libs
+          wget -O ./libs/ai-code-review.jar https://github.com/JiangZhiyan00/ai-code-review-sdk/releases/download/1.0.0/ai-code-review-sdk-1.0.0.jar
+
+      # 保存git diff内容到指定文件(有换行符,不能直接加到env中)
+      - name: Save Git Diff File, Add File Path To Env
+        id: git-diff-content
+        run: |
+          mkdir -p /tmp/git_diff
+          git diff HEAD~1 HEAD > /tmp/git_diff/diff.txt
+          echo "GIT_DIFF_FILE_PATH=/tmp/git_diff/diff.txt" >> $GITHUB_ENV
+
+      # 获取当前仓库名
+      - name: Get repository name
+        id: repo-name
+        run: echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
+
+      # 获取当前变化到分支名
+      - name: Get branch name
+        id: branch-name
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      # 获取本次提交者信息
+      - name: Get commit author
+        id: commit-author
+        run: echo "COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')" >> $GITHUB_ENV
+
+      # 获取本次提交的描述信息
+      - name: Get commit message
+        id: commit-message
+        run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=format:'%s')" >> $GITHUB_ENV
+
+      # 打印一些环境变量和仓库变量便于调试
+      - name: Print Some Info
+        run: |
+          echo "Repository name is ${{ env.REPO_NAME }}"
+          echo "Branch name is ${{ env.BRANCH_NAME }}"
+          echo "Commit author is ${{ env.COMMIT_AUTHOR }}"
+          echo "Commit message is ${{ env.COMMIT_MESSAGE }}"
+          echo "Git Diff File Path is ${{ env.GIT_DIFF_FILE_PATH }}"
+          echo "AI Model is ${{ vars.MODEL }}"
+          echo "Emails is ${{ vars.EMAILS }}"
+          echo "Code Review Log Url is ${{ vars.CODE_REVIEW_LOG_URL }}"
+          echo "Github Token is ${{ secrets.CODE_TOKEN }}"
+          echo "AI Api Key is ${{ secrets.CHATGLM_API_KEY }}"
+
+      # 执行AI代码评审
+      - name: Run AI Code Review
+        run: java -Duser.timezone=Asia/Shanghai -jar ./libs/ai-code-review.jar
+        # 设置一些环境变量
+        env:
+          # 必要
+          # 这部分可以自动获取到,不会为空
+          COMMIT_PROJECT: ${{ env.REPO_NAME }}
+          COMMIT_BRANCH: ${{ env.BRANCH_NAME }}
+          COMMIT_AUTHOR: ${{ env.COMMIT_AUTHOR }}
+          COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
+          GIT_DIFF_FILE_PATH: ${{ env.GIT_DIFF_FILE_PATH }}
+          # 这部分要自己去仓库设置
+          API_KEY: ${{ secrets.CHATGLM_API_KEY }}
+
+          # 非必要
+          # AI模型名称,目前默认是glm-4-flash
+          MODEL: ${{ vars.MODEL }}
+          # 接收评审报告的邮箱地址,有则发送
+          EMAILS: ${{ vars.EMAILS }}
+          # 代码评审记录存放仓库地址(与github token都有则传)
+          CODE_REVIEW_LOG_URL: ${{ vars.CODE_REVIEW_LOG_URL }}
+          # github的token,用于存代码评审记录(与代码评审记录存放仓库地址都有则传)
+          GITHUB_TOKEN: ${{ secrets.CODE_TOKEN }}
+          # 微信配置,暂时不用
+          # 微信配置 「https://mp.weixin.qq.com/debug/cgi-bin/sandboxinfo?action=showinfo&t=sandbox/index」
+          #          WEIXIN_APPID: ${{ secrets.WEIXIN_APPID }}
+          #          WEIXIN_SECRET: ${{ secrets.WEIXIN_SECRET }}
+          #          WEIXIN_TOUSER: ${{ secrets.WEIXIN_TOUSER }}
+          #          WEIXIN_TEMPLATE_ID: ${{ secrets.WEIXIN_TEMPLATE_ID }}
+          # OpenAi - ChatGLM 配置「https://open.bigmodel.cn/api/paas/v4/chat/completions」、「https://open.bigmodel.cn/usercenter/apikeys」
