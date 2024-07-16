@@ -5,12 +5,10 @@ on:
     branches:
       - main
       - master
-      - mybatis-plus
   pull_request:
     branches:
       - main
       - master
-      - mybatis-plus
 
 jobs:
   run-script:
@@ -75,6 +73,8 @@ jobs:
           echo "AI Model is ${{ vars.MODEL }}"
           echo "Emails is ${{ vars.EMAILS }}"
           echo "Code Review Log Url is ${{ vars.CODE_REVIEW_LOG_URL }}"
+          echo "Code Review Log Committer is ${{ vars.CODE_REVIEW_LOG_COMMITTER_NAME }}"
+          echo "Code Review Log Committer Email is ${{ vars.CODE_REVIEW_LOG_COMMITTER_EMAIL }}"
           echo "Github Token is ${{ secrets.CODE_TOKEN }}"
           echo "AI Api Key is ${{ secrets.CHATGLM_API_KEY }}"
 
@@ -102,6 +102,10 @@ jobs:
           CODE_REVIEW_LOG_URL: ${{ vars.CODE_REVIEW_LOG_URL }}
           # github的token,用于存代码评审记录(与代码评审记录存放仓库地址都有则传)
           GITHUB_TOKEN: ${{ secrets.CODE_TOKEN }}
+          # 保存评审记录仓库的提交者名
+          CODE_REVIEW_LOG_COMMITTER_NAME: ${{ vars.CODE_REVIEW_LOG_COMMITTER_NAME }}
+          # 保存评审记录仓库的提交者邮箱
+          CODE_REVIEW_LOG_COMMITTER_EMAIL: ${{ vars.CODE_REVIEW_LOG_COMMITTER_EMAIL }}
           # 微信配置,暂时不用
           # 微信配置 「https://mp.weixin.qq.com/debug/cgi-bin/sandboxinfo?action=showinfo&t=sandbox/index」
           #          WEIXIN_APPID: ${{ secrets.WEIXIN_APPID }}
