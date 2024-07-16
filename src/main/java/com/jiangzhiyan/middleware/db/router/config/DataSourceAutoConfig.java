@@ -2,6 +2,7 @@ package com.jiangzhiyan.middleware.db.router.config;
 
 import com.jiangzhiyan.middleware.db.router.DBRouterAspect;
 import com.jiangzhiyan.middleware.db.router.RouterConfig;
+import com.jiangzhiyan.middleware.db.router.RouterVersion;
 import com.jiangzhiyan.middleware.db.router.TableRouterAspect;
 import com.jiangzhiyan.middleware.db.router.dynamic.DynamicDataSource;
 import com.jiangzhiyan.middleware.db.router.dynamic.DynamicMybatisPlugin;
@@ -13,6 +14,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
+import org.springframework.boot.ansi.AnsiColor;
+import org.springframework.boot.ansi.AnsiOutput;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.context.EnvironmentAware;
@@ -32,6 +35,7 @@ import java.util.Map;
  */
 @Configuration
 public class DataSourceAutoConfig implements EnvironmentAware {
+    private static final String BANNER_ENABLE = "db-router.banner.enable";
     private static final String PREFIX = "db-router.jdbc.datasource.";
     private static final String DB_COUNT_KEY = PREFIX.concat("dbCount");
     private static final String TABLE_COUNT_KEY = PREFIX.concat("tableCount");
@@ -196,6 +200,19 @@ public class DataSourceAutoConfig implements EnvironmentAware {
     @Override
     @SuppressWarnings("unchecked")
     public void setEnvironment(Environment environment) {
+        if (!"false".equalsIgnoreCase(environment.getProperty(BANNER_ENABLE))) {
+            String version = RouterVersion.getVersion();
+            //自定义 banner 内容
+            String customBanner = " _      ___  _____  _____         ____   ____          ____    ___   _   _  _____  _____  ____  \n" +
+                    "| |    |_ _||_   _|| ____|       |  _ \\ | __ )        |  _ \\  / _ \\ | | | ||_   _|| ____||  _ \\ \n" +
+                    "| |     | |   | |  |  _|   _____ | | | ||  _ \\  _____ | |_) || | | || | | |  | |  |  _|  | |_) |\n" +
+                    "| |___  | |   | |  | |___ |_____|| |_| || |_) ||_____||  _ < | |_| || |_| |  | |  | |___ |  _ < \n" +
+                    "|_____||___|  |_|  |_____|       |____/ |____/        |_| \\_\\ \\___/  \\___/   |_|  |_____||_| \\_\\";
+
+            version = version != null ? "(v" + version + ")" : "unknown version";
+            System.out.println(AnsiOutput.toString(AnsiColor.BRIGHT_BLUE, customBanner, AnsiColor.DEFAULT, " ", AnsiColor.BRIGHT_GREEN, version));
+        }
+
         String dbCountStr = environment.getRequiredProperty(DB_COUNT_KEY);
         String tableCountStr = environment.getRequiredProperty(TABLE_COUNT_KEY);
         String dbListStr = environment.getRequiredProperty(ROUTER_DB_LIST_KEY);
