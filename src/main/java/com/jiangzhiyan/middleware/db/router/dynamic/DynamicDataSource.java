@@ -1,6 +1,6 @@
 package com.jiangzhiyan.middleware.db.router.dynamic;
 
-import com.jiangzhiyan.middleware.db.router.strategy.IDBRouterStrategy;
+import com.jiangzhiyan.middleware.db.router.strategy.IRouterStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
@@ -11,11 +11,11 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 public class DynamicDataSource extends AbstractRoutingDataSource {
     private static final String DB_PREFIX = "db";
 
-    private final IDBRouterStrategy dbRouterStrategy;
+    private final IRouterStrategy dbRouterStrategy;
 
     @Override
     protected Object determineCurrentLookupKey() {
-        Integer dbKeyIndex = dbRouterStrategy.getDbKeyIndex();
+        Integer dbKeyIndex = dbRouterStrategy.getDbIndex();
         return dbKeyIndex == null ? this.dbRouterStrategy.getDefaultDb() : DB_PREFIX + dbKeyIndex;
     }
 }

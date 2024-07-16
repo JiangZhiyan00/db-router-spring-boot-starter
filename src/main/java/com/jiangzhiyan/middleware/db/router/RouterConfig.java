@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public class DBRouterConfig {
+public class RouterConfig {
     /**
      * 分库数
      */
@@ -22,11 +22,19 @@ public class DBRouterConfig {
      */
     private String defaultDb;
     /**
-     * 默认的分库分表字段名称
+     * 默认的分库字段名称
      */
-    private String defaultRouterKey;
+    private String defaultDBRouterKey;
     /**
-     * 默认的分库分表字段类型
+     * 默认的分库字段类型
      */
-    private Class<?> defaultRouterKeyClass;
+    private Class<?> defaultDBRouterKeyClass;
+    /**
+     * 默认的分表字段名称
+     */
+    private String defaultTableRouterKey;
+    /**
+     * 默认的分表字段类型
+     */
+    private Class<?> defaultTableRouterKeyClass;
 }

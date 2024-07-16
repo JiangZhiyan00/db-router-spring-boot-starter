@@ -1,7 +1,8 @@
 package com.jiangzhiyan.middleware.db.router;
 
 import com.jiangzhiyan.middleware.db.router.annotation.DBRouter;
-import com.jiangzhiyan.middleware.db.router.strategy.IDBRouterStrategy;
+import com.jiangzhiyan.middleware.db.router.annotation.tag.NullClazz;
+import com.jiangzhiyan.middleware.db.router.strategy.IRouterStrategy;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.beanutils.BeanUtils;
 import org.aspectj.lang.JoinPoint;
@@ -12,6 +13,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -20,11 +22,11 @@ import java.lang.reflect.Parameter;
  * DBRouter注解切面处理类
  */
 @Aspect
+@Order(1)
 @RequiredArgsConstructor
 public class DBRouterAspect {
 
-    private final IDBRouterStrategy dbRouterStrategy;
-    private final DBRouterConfig dbRouterConfig;
+    private final IRouterStrategy routerStrategy;
 
     @Pointcut("@annotation(com.jiangzhiyan.middleware.db.router.annotation.DBRouter)")
     public void methodWithDBRouter() {
@@ -36,6 +38,10 @@ public class DBRouterAspect {
 
     @Around("methodWithDBRouter() || classWithDBRouter()")
     public Object doRouter(ProceedingJoinPoint pjp) throws Throwable {
+        //如果既有注解,又手动分库了的话,使用手动分库的结果
+        if (routerStrategy.getDbIndex() != null && routerStrategy.getDbIndex() > 0) {
+            return pjp.proceed();
+        }
         try {
             Method method = this.getMethod(pjp);
             //获取方法上的注解,如果存在
@@ -56,11 +62,15 @@ public class DBRouterAspect {
                     }
                 }
             }
-            //计算路由属性值
-            dbRouterStrategy.doRouter(getAttrValue(dbRouterAnnotation, method, pjp.getArgs()));
+
+            if (dbRouterAnnotation != null) {
+                int dbCount = dbRouterAnnotation.dbCount() < 1 ? routerStrategy.getDefaultDbCount() : dbRouterAnnotation.dbCount();
+                //计算路由属性值
+                routerStrategy.dbRouter(getAttrValue(dbRouterAnnotation, method, pjp.getArgs()), dbCount);
+            }
             return pjp.proceed();
         } finally {
-            dbRouterStrategy.clear();
+            routerStrategy.clear();
         }
     }
 
@@ -74,12 +84,12 @@ public class DBRouterAspect {
         if (args.length == 0 || dbRouter == null) {
             return null;
         }
-        String dbRouterKey = dbRouter.key() == null || dbRouter.key().isEmpty() ? this.dbRouterConfig.getDefaultRouterKey() : dbRouter.key();
-        Class<?> dbRouterKeyClass = dbRouter.keyClass() == DBRouter.NullClass.class ? this.dbRouterConfig.getDefaultRouterKeyClass() : dbRouter.keyClass();
+        String dbRouterKey = dbRouter.key() == null || dbRouter.key().isEmpty() ? routerStrategy.getDefaultDbRouterKey() : dbRouter.key();
+        Class<?> dbRouterKeyClass = dbRouter.keyClass() == NullClazz.class ? routerStrategy.getDefaultDbRouterKeyClass() : dbRouter.keyClass();
         if (dbRouterKey == null || dbRouterKey.isEmpty()) {
             throw new RuntimeException("dbRouter key can not be blank.");
         }
-        if (dbRouterKeyClass == null || dbRouterKeyClass == DBRouter.NullClass.class) {
+        if (dbRouterKeyClass == null || dbRouterKeyClass == NullClazz.class) {
             throw new RuntimeException("dbRouter keyClass can not be null.");
         }
 
