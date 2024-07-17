@@ -32,7 +32,7 @@ jobs:
       - name: Download ai-code-review jar to libs directory
         run: |
           mkdir -p ./libs
-          wget -O ./libs/ai-code-review.jar https://github.com/JiangZhiyan00/ai-code-review-sdk/releases/latest/download/ai-code-review-sdk.jar
+          wget -O ./libs/ai-code-review.jar https://github.com/JiangZhiyan00/ai-code-review-sdk-release/releases/latest/download/ai-code-review-sdk.jar
 
       # 保存git diff内容到指定文件(有换行符,不能直接加到env中)
       - name: Save Git Diff File, Add File Path To Env
