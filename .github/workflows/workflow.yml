@@ -62,6 +62,17 @@ jobs:
         id: commit-message
         run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=format:'%s')" >> $GITHUB_ENV
 
+      # 设置代码评审记录仓库缓存目录环境变量
+      - name: Set Review Record Repository Cache Dir
+        run: echo "CODE_REVIEW_LOG_REPO_CACHE_DIR=${{ github.workspace }}/cached-review-log-repo" >> $GITHUB_ENV
+
+      # 缓存代码评审记录仓库目录
+      - name: Cache Review Record Repository
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CODE_REVIEW_LOG_REPO_CACHE_DIR }}
+          key: ${{ runner.os }}-repo-${{ vars.CODE_REVIEW_LOG_URL }}
+
       # 打印一些环境变量和仓库变量便于调试
       - name: Print Some Info
         run: |
@@ -75,6 +86,7 @@ jobs:
           echo "Code Review Log Url is ${{ vars.CODE_REVIEW_LOG_URL }}"
           echo "Code Review Log Committer is ${{ vars.CODE_REVIEW_LOG_COMMITTER_NAME }}"
           echo "Code Review Log Committer Email is ${{ vars.CODE_REVIEW_LOG_COMMITTER_EMAIL }}"
+          echo "Code Review Log Local Repository Dir Cache is ${{ env.CODE_REVIEW_LOG_REPO_CACHE_DIR }}"
           echo "Github Token is ${{ secrets.CODE_TOKEN }}"
           echo "AI Api Key is ${{ secrets.CHATGLM_API_KEY }}"
 
@@ -106,6 +118,8 @@ jobs:
           CODE_REVIEW_LOG_COMMITTER_NAME: ${{ vars.CODE_REVIEW_LOG_COMMITTER_NAME }}
           # 保存评审记录仓库的提交者邮箱
           CODE_REVIEW_LOG_COMMITTER_EMAIL: ${{ vars.CODE_REVIEW_LOG_COMMITTER_EMAIL }}
+          # 评审记录本地仓库缓存地址
+          CODE_REVIEW_LOG_REPO_CACHE_DIR: ${{ env.CODE_REVIEW_LOG_REPO_CACHE_DIR }}
           # 微信配置,暂时不用
           # 微信配置 「https://mp.weixin.qq.com/debug/cgi-bin/sandboxinfo?action=showinfo&t=sandbox/index」
           #          WEIXIN_APPID: ${{ secrets.WEIXIN_APPID }}
